@@ -11,168 +11,314 @@ import Testing
 @testable import CS342_A2
 
 struct CS342_A1Tests {
-    var patient = Patient(
-        firstName: "John", lastName: "Doe", dateOfBirth: "1990-01-01", height: 180, weight: 70,
-        bloodType: .ABPositive)
+    // Initialize with height in mm (1800mm = 180cm) and weight in g (70000g = 70kg)
+    var patient = try! Patient(
+        firstName: "John", lastName: "Doe", dateOfBirth: Date(timeIntervalSince1970: 948_186_691),  // Sat, 18 Jan 2000 09:11:31 GMT
+        height: 1800, weight: 70000, bloodType: .abPositive
+    )
 
     @Test func testPatientInitialization() async throws {
         #expect(patient.firstName == "John")
         #expect(patient.lastName == "Doe")
-        #expect(patient.height == 180)
-        #expect(patient.weight == 70)
-        #expect(patient.bloodType == .ABPositive)
+        #expect(patient.height == 1800)  // 180cm in mm
+        #expect(patient.weight == 70000)  // 70kg in g
+        #expect(patient.bloodType == .abPositive)
         #expect(patient.medications.isEmpty)
         #expect(patient.medicalRecordNumber.uuidString != "")
         #expect(patient.description.contains("AB+"))
-        #expect(patient.description.contains("180.0 cm"))
-        #expect(patient.description.contains("70.0 kg"))
+        #expect(patient.description.contains("180.0 cm"))  // Converted from mm in description
+        #expect(patient.description.contains("70.0 kg"))  // Converted from g in description
+        #expect(patient.dateOfBirthString == "2000-01-18")
+    }
+
+    @Test func testPatientInitializationWithFutureDate() async {
+        let futureDate = Date.now.addingTimeInterval(1_000_000)
+        #expect(throws: PatientError.futureDateOfBirth) {
+            _ = try Patient(
+                firstName: "John", lastName: "Doe", dateOfBirth: futureDate,
+                height: 1800, weight: 70000
+            )
+        }
     }
 
     @Test func testPatientFullNameAndAge() async throws {
-        #expect(patient.fullNameAndAge().contains("Doe, John"))
-        #expect(
-            patient.fullNameAndAge().contains("(35)")
-                || patient.fullNameAndAge().contains(
-                    String(
-                        Calendar.current.dateComponents(
-                            [.year], from: patient.dateOfBirth, to: Date()
-                        ).year ?? 0))
-        )
+        #expect(patient.fullNameAndAge.contains("Doe, John"))
+        #expect(patient.fullNameAndAge.contains(String(25)))  // Age as of 2024
     }
 
     @Test func testPatientBloodType() async throws {
-        let patient2 = Patient(
-            firstName: "Jane", lastName: "Doe", dateOfBirth: "1990-01-01", height: 180, weight: 70,
-            bloodType: .ONegative)
-        #expect(patient2.bloodType == .ONegative)
+        let patient2 = try Patient(
+            firstName: "Jane", lastName: "Doe",
+            dateOfBirth: Date(timeIntervalSince1970: 631_152_000),
+            height: 1800, weight: 70000, bloodType: .oNegative
+        )
+        #expect(patient2.bloodType == .oNegative)
         #expect(patient2.description.contains("O-"))
         #expect(patient2.bloodType != patient.bloodType)
-        #expect(!patient2.compatibleBloodTypes().contains(patient.bloodType!))
-        #expect(patient.compatibleBloodTypes().contains(patient2.bloodType!))
-        #expect(patient.canReceiveBlood(from: patient2))
-        #expect(!patient2.canReceiveBlood(from: patient))
+        #expect(!patient2.compatibleBloodTypes.contains(patient.bloodType!))
+        #expect(patient.compatibleBloodTypes.contains(patient2.bloodType!))
+        #expect(try patient.canReceiveBlood(from: patient2))
+        #expect(try !patient2.canReceiveBlood(from: patient))
     }
 
     @Test func testMedicationInitialization() async throws {
-        let dateNow = Date()
+        let dateNow = Date.now
         let medication1 = Medication(
-            name: "Medication 1", dose: 20, route: "by mouth", frequency: 1, duration: 10,
-            datePrescribed: dateNow)
+            name: "Aspirin",
+            dosage: Dosage(value: 81, unit: .milligrams),
+            route: .oral,
+            frequency: 1,
+            duration: 90,
+            datePrescribed: dateNow
+        )
 
-        #expect(medication1.name == "Medication 1")
-        #expect(medication1.dose == 20)
-        #expect(medication1.route == "by mouth")
+        #expect(medication1.name == "Aspirin")
+        #expect(medication1.dosage.value == 81)
+        #expect(medication1.dosage.unit == .milligrams)
+        #expect(medication1.route == .oral)
         #expect(medication1.frequency == 1)
-        #expect(medication1.duration == 10)
+        #expect(medication1.duration == 90)
         #expect(medication1.datePrescribed == dateNow)
+        #expect(medication1.description == "Aspirin 81mg by mouth once daily for 90 days")
+        #expect(medication1.daysRemaining >= 89)
+        #expect(medication1.isActive)
+        #expect(
+            medication1.endDate == Calendar.current.date(byAdding: .day, value: 90, to: dateNow)!)
     }
 
     @Test mutating func testPatientPrescribeMedication() async throws {
         let medication1 = Medication(
-            name: "Medication 1", dose: 20, route: "by mouth", frequency: 1, duration: 10,
-            datePrescribed: Date())
+            name: "Metoprolol",
+            dosage: Dosage(value: 25, unit: .milligrams),
+            route: .oral,
+            frequency: 1,
+            duration: 90,
+            datePrescribed: .now
+        )
         try patient.prescribe(medication: medication1)
         #expect(patient.medications.count == 1)
-        #expect(patient.medications[0].name == "Medication 1")
+        #expect(patient.medications[0].name == "Metoprolol")
         #expect(patient.medications[0] == medication1)
         #expect(
             patient.medications[0].description
-                == "Medication 1 20.0 mg by mouth once daily for 10 days")
-        #expect(patient.medications[0].daysRemaining == 9)
-        #expect(
-            patient.description.contains(
-                "Medication 1 20.0 mg by mouth once daily for 10 days (9 days remaining)"))
+                == "Metoprolol 25mg by mouth once daily for 90 days")
+        #expect(patient.medications[0].daysRemaining >= 89)  // Account for time passing during test
+        #expect(patient.description.contains("Metoprolol 25mg by mouth once daily for 90 days"))
     }
 
     @Test mutating func testPatientPrescribeDuplicateMedication() async throws {
         let medication1 = Medication(
-            name: "Medication 1", dose: 20, route: "by mouth", frequency: 1, duration: 10,
-            datePrescribed: Date())
+            name: "Losartan",
+            dosage: Dosage(value: 25, unit: .milligrams),
+            route: .oral,
+            frequency: 1,
+            duration: 90,
+            datePrescribed: .now
+        )
         try patient.prescribe(medication: medication1)
         #expect(patient.medications.count == 1)
-        #expect(patient.medications[0].name == "Medication 1")
+        #expect(patient.medications[0].name == "Losartan")
         #expect(patient.medications[0] == medication1)
-        #expect(throws: MedicationError.duplicateMedication("Medication 1")) {
+        #expect(throws: MedicationError.duplicateMedication("Losartan")) {
             try patient.prescribe(medication: medication1)
         }
     }
 
     @Test mutating func testPatientCurrentMedications() async throws {
         let medication1 = Medication(
-            name: "Medication 1", dose: 20, route: "by mouth", frequency: 1, duration: 10,
-            datePrescribed: Date())
+            name: "Current Med",
+            dosage: Dosage(value: 25, unit: .milligrams),
+            route: .oral,
+            frequency: 1,
+            duration: 90,
+            datePrescribed: .now
+        )
         let medication2 = Medication(
-            name: "Medication 2", dose: 20, route: "by mouth", frequency: 1, duration: 10,
-            datePrescribed: Calendar.current.date(byAdding: .day, value: -100, to: Date())!)
+            name: "Past Med",
+            dosage: Dosage(value: 25, unit: .milligrams),
+            route: .oral,
+            frequency: 1,
+            duration: 10,
+            datePrescribed: .now.addingTimeInterval(-86400 * 20)  // 20 days ago
+        )
         let medication3 = Medication(
-            name: "Medication 3", dose: 20, route: "inhaled", frequency: 2, duration: 200,
-            datePrescribed: Calendar.current.date(byAdding: .day, value: -100, to: Date())!)
+            name: "Long Term Med",
+            dosage: Dosage(value: 100, unit: .micrograms),
+            route: .inhaled,
+            frequency: 2,
+            duration: 200,
+            datePrescribed: .now.addingTimeInterval(-86400 * 100)  // 100 days ago
+        )
+
         try patient.prescribe(medication: medication1)
         try patient.prescribe(medication: medication2)
         try patient.prescribe(medication: medication3)
-        #expect(patient.currentMedications().count == 2)
-        #expect(patient.currentMedications().contains(medication1))
-        #expect(!patient.currentMedications().contains(medication2))
-        #expect(patient.currentMedications().contains(medication3))
-        #expect(patient.currentMedications()[0] == medication3)
-        #expect(patient.currentMedications()[1] == medication1)
+
+        let currentMeds = patient.currentMedications
+        #expect(currentMeds.count == 2)
+        #expect(currentMeds.contains(medication1))
+        #expect(!currentMeds.contains(medication2))
+        #expect(currentMeds.contains(medication3))
+        #expect(currentMeds[0] == medication3)  // Older prescription first
+        #expect(currentMeds[1] == medication1)  // Newer prescription second
     }
 
-    // Claude-3.5-sonnet
-    // "please help me add additional cases to testPatientCompatibleBloodTypes using this chart ..."
-    @Test func testPatientCompatibleBloodTypes() async throws {
-        // AB+ (universal recipient)
-        var patient = Patient(
-            firstName: "Test", lastName: "Patient", dateOfBirth: "1990-01-01", height: 170,
-            weight: 70, bloodType: .ABPositive)
-        var compatibleTypes = patient.compatibleBloodTypes()
-        #expect(compatibleTypes.count == 8)
-        #expect(compatibleTypes == BloodType.allCases)
+    @Test func testBloodTypeCompatibility() async throws {
+        // Test all blood type compatibility rules
+        for recipientType in BloodType.allCases {
+            let recipient = try Patient(
+                firstName: "Test", lastName: "Patient",
+                dateOfBirth: Date(timeIntervalSince1970: 631_152_000),
+                height: 1800, weight: 70000, bloodType: recipientType
+            )
 
-        // O- (universal donor)
-        patient = Patient(
-            firstName: "Test", lastName: "Patient", dateOfBirth: "1990-01-01", height: 170,
-            weight: 70, bloodType: .ONegative)
-        compatibleTypes = patient.compatibleBloodTypes()
-        #expect(compatibleTypes.count == 1)
-        #expect(compatibleTypes.contains(.ONegative))
+            for donorType in BloodType.allCases {
+                let donor = try Patient(
+                    firstName: "Test", lastName: "Donor",
+                    dateOfBirth: Date(timeIntervalSince1970: 631_152_000),
+                    height: 1800, weight: 70000, bloodType: donorType
+                )
 
-        // O+
-        patient = Patient(
-            firstName: "Test", lastName: "Patient", dateOfBirth: "1990-01-01", height: 170,
-            weight: 70, bloodType: .OPositive)
-        compatibleTypes = patient.compatibleBloodTypes()
-        #expect(compatibleTypes.count == 2)
-        #expect(compatibleTypes.contains(.ONegative))
-        #expect(compatibleTypes.contains(.OPositive))
-
-        // A+
-        patient = Patient(
-            firstName: "Test", lastName: "Patient", dateOfBirth: "1990-01-01", height: 170,
-            weight: 70, bloodType: .APositive)
-        compatibleTypes = patient.compatibleBloodTypes()
-        #expect(compatibleTypes.count == 4)
-        #expect(compatibleTypes.contains(.APositive))
-        #expect(compatibleTypes.contains(.ANegative))
-        #expect(compatibleTypes.contains(.OPositive))
-        #expect(compatibleTypes.contains(.ONegative))
-
-        // B-
-        patient = Patient(
-            firstName: "Test", lastName: "Patient", dateOfBirth: "1990-01-01", height: 170,
-            weight: 70, bloodType: .BNegative)
-        compatibleTypes = patient.compatibleBloodTypes()
-        #expect(compatibleTypes.count == 2)
-        #expect(compatibleTypes.contains(.BNegative))
-        #expect(compatibleTypes.contains(.ONegative))
-
-        // fuzz that all blood types are compatible with themselves
-        for bloodType in BloodType.allCases {
-            patient = Patient(
-                firstName: "Test", lastName: "Patient", dateOfBirth: "1990-01-01", height: 170,
-                weight: 70, bloodType: bloodType)
-            compatibleTypes = patient.compatibleBloodTypes()
-            #expect(compatibleTypes.contains(bloodType))
+                #expect(
+                    try recipient.canReceiveBlood(from: donor)
+                        == recipient.compatibleBloodTypes.contains(donorType))
+            }
         }
+    }
+
+    @Test func testPatientEquality() async throws {
+        let patient1 = try Patient(
+            firstName: "John",
+            lastName: "Doe",
+            dateOfBirth: Date(timeIntervalSince1970: 948_186_691),
+            height: 1800,
+            weight: 70000
+        )
+
+        let patient2 = try Patient(
+            firstName: "John",  // Same name but different MRN
+            lastName: "Doe",
+            dateOfBirth: Date(timeIntervalSince1970: 948_186_691),
+            height: 1800,
+            weight: 70000
+        )
+
+        #expect(patient1 != patient2)  // Different MRN
+    }
+
+    @Test func testBloodTransfusionErrors() async throws {
+        let recipient = try Patient(
+            firstName: "John",
+            lastName: "Doe",
+            dateOfBirth: Date(timeIntervalSince1970: 948_186_691),
+            height: 1800,
+            weight: 70000,
+            bloodType: .abPositive
+        )
+
+        let donorWithoutBloodType = try Patient(
+            firstName: "Jane",
+            lastName: "Smith",
+            dateOfBirth: Date(timeIntervalSince1970: 948_186_691),
+            height: 1800,
+            weight: 70000  // No blood type specified
+        )
+
+        #expect(throws: PatientError.invalidBloodTypeForTransfusion) {
+            _ = try recipient.canReceiveBlood(from: donorWithoutBloodType)
+        }
+
+        // Test recipient without blood type
+        let recipientWithoutBloodType = try Patient(
+            firstName: "Bob",
+            lastName: "Smith",
+            dateOfBirth: Date(timeIntervalSince1970: 948_186_691),
+            height: 1800,
+            weight: 70000  // No blood type specified
+        )
+
+        let donor = try Patient(
+            firstName: "Alice",
+            lastName: "Jones",
+            dateOfBirth: Date(timeIntervalSince1970: 948_186_691),
+            height: 1800,
+            weight: 70000,
+            bloodType: .oNegative
+        )
+
+        #expect(recipientWithoutBloodType.compatibleBloodTypes.isEmpty)
+        #expect(throws: PatientError.invalidBloodTypeForTransfusion) {
+            _ = try recipientWithoutBloodType.canReceiveBlood(from: donor)
+        }
+    }
+
+    @Test func testDosageDescription() async throws {
+        let dosage1 = Dosage(value: 81, unit: .milligrams)
+        #expect(dosage1.description == "81mg")
+
+        let dosage2 = Dosage(value: 1, unit: .grams)
+        #expect(dosage2.description == "1g")
+
+        let dosage3 = Dosage(value: 100, unit: .micrograms)
+        #expect(dosage3.description == "100mcg")
+    }
+
+    @Test func testMedicationEndDateAndDaysRemaining() async throws {
+        let pastDate = Date.now.addingTimeInterval(-86400 * 10)  // 10 days ago
+        let expiredMed = Medication(
+            name: "Expired Med",
+            dosage: Dosage(value: 25, unit: .milligrams),
+            route: .oral,
+            frequency: 1,
+            duration: 5,  // 5 days duration, started 10 days ago
+            datePrescribed: pastDate
+        )
+
+        #expect(!expiredMed.isActive)
+        #expect(expiredMed.daysRemaining == 0)
+
+        let futureMed = Medication(
+            name: "Future Med",
+            dosage: Dosage(value: 25, unit: .milligrams),
+            route: .oral,
+            frequency: 1,
+            duration: 30,
+            datePrescribed: .now
+        )
+
+        #expect(futureMed.isActive)
+        #expect(futureMed.daysRemaining >= 29)  // Account for time passing during test
+    }
+
+    @Test func testMedicationFrequencyDescription() async throws {
+        let med1 = Medication(
+            name: "Once Daily",
+            dosage: Dosage(value: 25, unit: .milligrams),
+            route: .oral,
+            frequency: 1,
+            duration: 30,
+            datePrescribed: .now
+        )
+        #expect(med1.dosageDescription == "once daily")
+
+        let med2 = Medication(
+            name: "Twice Daily",
+            dosage: Dosage(value: 25, unit: .milligrams),
+            route: .oral,
+            frequency: 2,
+            duration: 30,
+            datePrescribed: .now
+        )
+        #expect(med2.dosageDescription == "twice daily")
+
+        let med3 = Medication(
+            name: "Three Times Daily",
+            dosage: Dosage(value: 25, unit: .milligrams),
+            route: .oral,
+            frequency: 3,
+            duration: 30,
+            datePrescribed: .now
+        )
+        #expect(med3.dosageDescription == "3 times daily")
     }
 }

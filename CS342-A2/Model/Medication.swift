@@ -21,63 +21,60 @@
 
 import Foundation
 
-struct Medication: Codable, Equatable {
+/// A type representing a medication prescribed to a patient.
+struct Medication {
+    /// The name of the medication (e.g., "Aspirin").
     let name: String
-    let dose: Double
-    let route: String
+
+    /// The dosage of the medication.
+    let dosage: Dosage
+
+    /// The route of administration.
+    let route: MedicationRoute
+
+    /// The number of times per day the medication should be taken.
     let frequency: Int
+
+    /// The number of days the medication should be taken.
     let duration: Int
+
+    /// The date when the medication was prescribed.
     let datePrescribed: Date
 
+    /// Whether the medication is currently active based on the prescription duration.
     var isActive: Bool {
         guard
             let endDate = Calendar.current.date(byAdding: .day, value: duration, to: datePrescribed)
-        else {
-            return false
-        }
-        return Date() < endDate
+        else { return false }
+        return .now < endDate
     }
-}
 
-enum MedicationError: Error, CustomStringConvertible, Equatable {
-    case duplicateMedication(String)
-
-    var description: String {
-        switch self {
-        case .duplicateMedication(let name):
-            return "Medication \(name) already prescribed and active"
-        }
-    }
-}
-
-// additional functionality
-extension Medication: CustomStringConvertible {
-    var description: String {
-        return "\(name) \(dose) mg \(route) \(dosageDescription) for \(duration) days"
-    }
-}
-
-extension Medication {
+    /// The date when the medication course ends.
     var endDate: Date {
-        return Calendar.current.date(byAdding: .day, value: duration, to: datePrescribed)
-            ?? datePrescribed  // not sure if this is the best way if such an error occurs
+        Calendar.current.date(byAdding: .day, value: duration, to: datePrescribed) ?? datePrescribed
     }
 
+    /// The number of days remaining in the medication course.
     var daysRemaining: Int {
-        guard isActive else {
-            return 0
-        }
-        return Calendar.current.dateComponents([.day], from: Date(), to: endDate).day ?? 0
+        guard isActive else { return 0 }
+        return Calendar.current.dateComponents([.day], from: .now, to: endDate).day ?? 0
     }
 
+    /// A human-readable description of the dosage frequency.
     var dosageDescription: String {
         switch frequency {
-        case 1:
-            return "once daily"
-        case 2:
-            return "twice daily"
-        default:
-            return "\(frequency) times daily"
+        case 1: return "once daily"
+        case 2: return "twice daily"
+        default: return "\(frequency) times daily"
         }
+    }
+}
+
+// Extensions
+extension Medication: Codable, Equatable {}
+
+extension Medication: CustomStringConvertible {
+    var description: String {
+        "\(name) \(dosage.description) \(route.rawValue) \(dosageDescription) for \(duration) days"
     }
 }
