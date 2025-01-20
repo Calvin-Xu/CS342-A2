@@ -20,8 +20,8 @@ struct CS342_A1Tests {
     @Test func testPatientInitialization() async throws {
         #expect(patient.firstName == "John")
         #expect(patient.lastName == "Doe")
-        #expect(patient.height == 1800)  // 180cm in mm
-        #expect(patient.weight == 70000)  // 70kg in g
+        #expect(patient.height_mm == 1800)  // 180cm in mm
+        #expect(patient.weight_g == 70000)  // 70kg in g
         #expect(patient.bloodType == .abPositive)
         #expect(patient.medications.isEmpty)
         #expect(patient.medicalRecordNumber.uuidString != "")

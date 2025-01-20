@@ -9,9 +9,14 @@ import SwiftUI
 
 @main
 struct CS342_A2App: App {
+    @State private var store = PatientStore()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            NavigationStack {
+                PatientListView()
+            }
+            .environment(store)
         }
     }
 }

@@ -71,7 +71,7 @@ struct Medication {
 }
 
 // Extensions
-extension Medication: Codable, Equatable {}
+extension Medication: Codable, Equatable, Hashable {}
 
 extension Medication: CustomStringConvertible {
     var description: String {

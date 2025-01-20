@@ -23,4 +23,4 @@ struct Dosage {
 }
 
 // Extensions
-extension Dosage: Codable, Equatable {}
+extension Dosage: Codable, Equatable, Hashable {}

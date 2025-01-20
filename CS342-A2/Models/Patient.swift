@@ -41,10 +41,10 @@ struct Patient {
     var dateOfBirth: Date
 
     /// The patient's height in millimeters.
-    var height: Int
+    var height_mm: Int
 
     /// The patient's weight in grams.
-    var weight: Int
+    var weight_g: Int
 
     /// The patient's blood type, if known.
     var bloodType: BloodType?
@@ -98,8 +98,8 @@ struct Patient {
         self.firstName = firstName
         self.lastName = lastName
         self.dateOfBirth = dateOfBirth
-        self.height = height
-        self.weight = weight
+        self.height_mm = height
+        self.weight_g = weight
         self.bloodType = bloodType
         self.medications = []
     }
@@ -127,7 +127,7 @@ struct Patient {
 }
 
 // Extensions
-extension Patient: Codable, Equatable {
+extension Patient: Codable, Equatable, Hashable {
     static func == (lhs: Patient, rhs: Patient) -> Bool {
         lhs.medicalRecordNumber == rhs.medicalRecordNumber
     }
@@ -140,10 +140,33 @@ extension Patient: CustomStringConvertible {
         MRN: \(medicalRecordNumber)
         Date of Birth: \(dateOfBirthString)
         Blood Type: \(bloodType?.rawValue ?? "Unknown")
-        Height: \(Double(height) / 10) cm
-        Weight: \(Double(weight) / 1000) kg
+        Height: \(Double(height_mm) / 10) cm
+        Weight: \(Double(weight_g) / 1000) kg
         Active Medications:
         \(currentMedications.map { "\($0.description) (\($0.daysRemaining) days remaining)" }.joined(separator: "\n"))
         """
     }
+}
+
+extension Patient {
+    /// Sample patients for previews and testing
+    static var samples: [Patient] = {
+        try! [
+            Patient(
+                firstName: "John", lastName: "Doe",
+                dateOfBirth: Date(timeIntervalSince1970: 548_186_691),
+                height: 1800, weight: 70000, bloodType: .aPositive
+            ),
+            Patient(
+                firstName: "Jane", lastName: "Smith",
+                dateOfBirth: Date(timeIntervalSince1970: 748_186_691),
+                height: 1650, weight: 65000, bloodType: .bNegative
+            ),
+            Patient(
+                firstName: "Robert", lastName: "Anderson",
+                dateOfBirth: Date(timeIntervalSince1970: 948_186_691),  // Sat, 18 Jan 2000 09:11:31 GMT
+                height: 1750, weight: 80000, bloodType: .oPositive
+            ),
+        ]
+    }()
 }
