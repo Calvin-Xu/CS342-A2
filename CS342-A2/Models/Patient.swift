@@ -18,41 +18,42 @@
 //
 // And the following methods:
 //
-// A method that returns the patient’s full name and age in years as a string in the format “Last name, First name (Age in years)”, as it might be displayed in a list.
+// A method that returns the patient's full name and age in years as a string in the format "Last name, First name (Age in years)", as it might be displayed in a list.
 // A method that returns a list of Medications the Patient is currently taking, ordered by date prescribed, excluding any completed medications.
 // A method to prescribe a new Medication to a Patient, while avoiding duplicating medications the patient is currently taking. If a duplicate is prescribed, the method should throw an appropriate errorLinks to an external site..
 // Bonus: Implement a method to determine which donor blood types a Patient can receive a blood transfusion from
 
+/// A type representing a medical patient with their personal and medical information.
 import Foundation
 
-/// A type representing a medical patient with their personal and medical information.
-struct Patient {
-    // Instance Properties
+class Patient: ObservableObject {
+    // MARK: - Properties
+
     /// A unique identifier for the patient's medical record.
     let medicalRecordNumber: UUID
 
     /// The patient's first name.
-    var firstName: String
+    @Published var firstName: String
 
     /// The patient's last name.
-    var lastName: String
+    @Published var lastName: String
 
     /// The patient's date of birth.
-    var dateOfBirth: Date
+    @Published var dateOfBirth: Date
 
     /// The patient's height in millimeters.
-    var height_mm: Int
+    @Published var height_mm: Int
 
     /// The patient's weight in grams.
-    var weight_g: Int
+    @Published var weight_g: Int
 
     /// The patient's blood type, if known.
-    var bloodType: BloodType?
+    @Published var bloodType: BloodType?
 
     /// A list of all medications the patient is currently taking or has taken.
-    private(set) var medications: [Medication]
+    @Published private(set) var medications: [Medication]
 
-    // Computed Instance Properties
+    // Computed Properties
     /// The patient's full name and age formatted as "Last name, First name (Age)".
     var fullNameAndAge: String {
         let ageInYears =
@@ -77,23 +78,19 @@ struct Patient {
         return formatter.string(from: dateOfBirth)
     }
 
-    /// Creates a new patient with the specified information.
-    /// - Parameters:
-    ///   - firstName: The patient's first name
-    ///   - lastName: The patient's last name
-    ///   - dateOfBirth: The patient's date of birth
-    ///   - height: The patient's height in millimeters
-    ///   - weight: The patient's weight in grams
-    ///   - bloodType: The patient's blood type, if known
-    /// - Throws: `PatientError.futureDateOfBirth` if the date of birth is in the future
+    // MARK: - Init
+
     init(
-        firstName: String, lastName: String, dateOfBirth: Date, height: Int, weight: Int,
+        firstName: String,
+        lastName: String,
+        dateOfBirth: Date,
+        height: Int,
+        weight: Int,
         bloodType: BloodType? = nil
     ) throws {
         guard dateOfBirth <= .now else {
             throw PatientError.futureDateOfBirth
         }
-
         self.medicalRecordNumber = UUID()
         self.firstName = firstName
         self.lastName = lastName
@@ -104,14 +101,34 @@ struct Patient {
         self.medications = []
     }
 
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        medicalRecordNumber = try container.decode(UUID.self, forKey: .medicalRecordNumber)
+        firstName = try container.decode(String.self, forKey: .firstName)
+        lastName = try container.decode(String.self, forKey: .lastName)
+        dateOfBirth = try container.decode(Date.self, forKey: .dateOfBirth)
+        height_mm = try container.decode(Int.self, forKey: .height_mm)
+        weight_g = try container.decode(Int.self, forKey: .weight_g)
+        bloodType = try container.decodeIfPresent(BloodType.self, forKey: .bloodType)
+        medications = try container.decode([Medication].self, forKey: .medications)
+    }
+
+    // MARK: - Methods
+
     /// Prescribes a new medication to the patient.
     /// - Parameter medication: The medication to prescribe
     /// - Throws: `MedicationError.duplicateMedication` if the patient is already taking this medication
-    mutating func prescribe(medication: Medication) throws {
+    func prescribe(medication: Medication) throws {
         if medications.contains(where: { $0.name == medication.name && $0.isActive }) {
             throw MedicationError.duplicateMedication(medication.name)
         }
         medications.append(medication)
+    }
+
+    /// Removes a medication from the patient's list of medications.
+    /// - Parameter medication: The medication to remove
+    func removeMedication(_ medication: Medication) {
+        medications.removeAll { $0.id == medication.id }
     }
 
     /// Checks if this patient can receive blood from a donor.
@@ -126,10 +143,39 @@ struct Patient {
     }
 }
 
-// Extensions
-extension Patient: Codable, Equatable, Hashable {
+extension Patient: Codable, Hashable, Equatable {
+    // MARK: - Codable
+    enum CodingKeys: String, CodingKey {
+        case medicalRecordNumber
+        case firstName
+        case lastName
+        case dateOfBirth
+        case height_mm
+        case weight_g
+        case bloodType
+        case medications
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(medicalRecordNumber, forKey: .medicalRecordNumber)
+        try container.encode(firstName, forKey: .firstName)
+        try container.encode(lastName, forKey: .lastName)
+        try container.encode(dateOfBirth, forKey: .dateOfBirth)
+        try container.encode(height_mm, forKey: .height_mm)
+        try container.encode(weight_g, forKey: .weight_g)
+        try container.encode(bloodType, forKey: .bloodType)
+        try container.encode(medications, forKey: .medications)
+    }
+
+    // MARK: - Equatable
     static func == (lhs: Patient, rhs: Patient) -> Bool {
         lhs.medicalRecordNumber == rhs.medicalRecordNumber
+    }
+
+    // MARK: - Hashable
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(medicalRecordNumber)
     }
 }
 
@@ -155,7 +201,7 @@ extension Patient {
             Patient(
                 firstName: "John", lastName: "Doe",
                 dateOfBirth: Date(timeIntervalSince1970: 548_186_691),
-                height: 1800, weight: 70000, bloodType: .aPositive
+                height: 1800, weight: 70000, bloodType: .abPositive
             ),
             Patient(
                 firstName: "Jane", lastName: "Smith",

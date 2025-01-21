@@ -23,6 +23,9 @@ import Foundation
 
 /// A type representing a medication prescribed to a patient.
 struct Medication {
+    /// The unique identifier for the medication.
+    var id: UUID
+
     /// The name of the medication (e.g., "Aspirin").
     let name: String
 
@@ -67,6 +70,20 @@ struct Medication {
         case 2: return "twice daily"
         default: return "\(frequency) times daily"
         }
+    }
+
+    /// Initialize a new medication with the given properties.
+    init(
+        name: String, dosage: Dosage, route: MedicationRoute, frequency: Int,
+        duration: Int, datePrescribed: Date
+    ) {
+        self.id = UUID()
+        self.name = name
+        self.dosage = dosage
+        self.route = route
+        self.frequency = frequency
+        self.duration = duration
+        self.datePrescribed = datePrescribed
     }
 }
 

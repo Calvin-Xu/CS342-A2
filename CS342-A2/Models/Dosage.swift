@@ -20,6 +20,12 @@ struct Dosage {
     var description: String {
         "\(value)\(unit.rawValue)"
     }
+
+    /// Initialize a new dosage with a value and unit.
+    init(value: Int, unit: DosageUnit) {
+        self.value = value
+        self.unit = unit
+    }
 }
 
 // Extensions
