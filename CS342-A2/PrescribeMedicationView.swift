@@ -23,10 +23,12 @@ struct PrescribeMedicationView: View {
                 Section("Medication Details") {
                     TextField("Name", text: $medicationName)
                         .textInputAutocapitalization(.words)
+                        .accessibilityIdentifier("medication.name")
 
                     HStack {
                         TextField("Dose", text: $doseValue)
                             .keyboardType(.numberPad)
+                            .accessibilityIdentifier("medication.dose")
                         Picker("Unit", selection: $selectedDoseUnit) {
                             ForEach(
                                 [
@@ -38,16 +40,17 @@ struct PrescribeMedicationView: View {
                                 Text($0.rawValue)
                             }
                         }
+                        .accessibilityIdentifier("medication.unit")
                     }
                     .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
                     // https://stackoverflow.com/questions/74845212/how-do-we-control-the-automatic-dividers-in-swiftui-forms
-                    
 
                     Picker("Route", selection: $route) {
                         ForEach(MedicationRoute.allCases, id: \.self) {
                             Text($0.rawValue)
                         }
                     }
+                    .accessibilityIdentifier("medication.route")
 
                     HStack {
                         Text("Times per day: ")
@@ -65,8 +68,10 @@ struct PrescribeMedicationView: View {
                         .frame(width: 60)
                         .multilineTextAlignment(.center)
                         .padding(.trailing, 10)
+                        .accessibilityIdentifier("medication.frequency")
                         Stepper("Times per day: \(frequency)", value: $frequency, in: 1...100)
                             .labelsHidden()
+                            .accessibilityIdentifier("medication.frequency.stepper")
                     }
 
                     VStack(alignment: .leading) {
@@ -86,10 +91,13 @@ struct PrescribeMedicationView: View {
                             .frame(width: 60)
                             .multilineTextAlignment(.center)
                             .padding(.trailing, 10)
+                            .accessibilityIdentifier("medication.duration")
                             Stepper("Duration: \(frequency)", value: $duration, in: 1...100)
                                 .labelsHidden()
+                                .accessibilityIdentifier("medication.duration.stepper")
                         }
                         Slider(value: $duration, in: 1...30, step: 1)
+                            .accessibilityIdentifier("medication.duration.slider")
                     }
                 }
             }
@@ -99,12 +107,14 @@ struct PrescribeMedicationView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .accessibilityIdentifier("medication.cancel")
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         saveMedication()
                     }
                     .disabled(medicationName.isEmpty || doseValue.isEmpty)
+                    .accessibilityIdentifier("medication.save")
                 }
             }
             .alert("Error", isPresented: $showErrorAlert) {

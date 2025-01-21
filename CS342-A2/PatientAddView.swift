@@ -43,41 +43,57 @@ struct PatientAddView: View {
                 Section {
                     TextField("First Name", text: $firstName)
                         .textContentType(.givenName)
+                        .accessibilityIdentifier("patient.add.firstName")
 
                     TextField("Last Name", text: $lastName)
                         .textContentType(.familyName)
+                        .accessibilityIdentifier("patient.add.lastName")
 
+                    TextField("Height (cm)", text: $height_cm)
+                        .keyboardType(.decimalPad)
+                        .accessibilityIdentifier("patient.add.height")
+                    if !height_cm.isEmpty && !isHeightValid {
+                        Text("Height must be between 0 and 300 cm")
+                            .foregroundStyle(.red)
+                            .font(.caption)
+                            .accessibilityIdentifier("patient.add.height.error")
+                    }
+
+                    TextField("Weight (kg)", text: $weight_kg)
+                        .keyboardType(.decimalPad)
+                        .accessibilityIdentifier("patient.add.weight")
+                    if !weight_kg.isEmpty && !isWeightValid {
+                        Text("Weight must be between 0 and 700 kg")
+                            .foregroundStyle(.red)
+                            .font(.caption)
+                            .accessibilityIdentifier("patient.add.weight.error")
+                    }
+                }
+
+                Section("Date of Birth") {
                     DatePicker(
                         "Date of Birth",
                         selection: $dateOfBirth,
                         in: ...Date.now,
                         displayedComponents: .date
                     )
-
-                    TextField("Height (cm)", text: $height_cm)
-                        .keyboardType(.decimalPad)
-                    if !height_cm.isEmpty && !isHeightValid {
-                        Text("Height must be between 0 and 300 cm")
-                            .foregroundStyle(.red)
-                            .font(.caption)
-                    }
-
-                    TextField("Weight (kg)", text: $weight_kg)
-                        .keyboardType(.decimalPad)
-                    if !weight_kg.isEmpty && !isWeightValid {
-                        Text("Weight must be between 0 and 700 kg")
-                            .foregroundStyle(.red)
-                            .font(.caption)
-                    }
+                    .datePickerStyle(.wheel)
+                    .accessibilityIdentifier("patient.add.dateOfBirth")
                 }
 
                 Section("Optional") {
                     Picker("Blood Type", selection: $bloodType) {
                         Text("Unknown").tag(nil as BloodType?)
+                            .accessibilityIdentifier("patient.add.bloodType.unknown")
                         ForEach(BloodType.allCases, id: \.self) { bloodType in
-                            Text(bloodType.rawValue).tag(bloodType as BloodType?)
+                            Text(bloodType.rawValue)
+                                .tag(bloodType as BloodType?)
+                                .accessibilityIdentifier(
+                                    "patient.add.bloodType.\(bloodType.rawValue)")
                         }
                     }
+                    .pickerStyle(.menu)
+                    .accessibilityIdentifier("patient.add.bloodType")
                 }
             }
             .navigationTitle("Add Patient")
@@ -87,6 +103,7 @@ struct PatientAddView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .accessibilityIdentifier("patient.add.cancel")
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
@@ -94,6 +111,7 @@ struct PatientAddView: View {
                         savePatient()
                     }
                     .disabled(!isFormValid)
+                    .accessibilityIdentifier("patient.add.save")
                 }
             }
             .alert("Error", isPresented: $showingError) {

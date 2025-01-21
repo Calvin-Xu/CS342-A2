@@ -32,21 +32,26 @@ struct PatientListView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(patient.fullNameAndAge)
                         .font(.headline)
+                        .accessibilityIdentifier("patient.name.\(patient.medicalRecordNumber)")
 
                     Text("MRN: \(patient.medicalRecordNumber.uuidString)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("patient.mrn.\(patient.medicalRecordNumber)")
                 }
                 .padding(.vertical, 4)
+                .accessibilityIdentifier("patient.cell.\(patient.medicalRecordNumber)")
                 .swipeActions(edge: .trailing) {
                     Button(role: .destructive) {
                         store.remove(patient)
                     } label: {
                         Label("Delete", systemImage: "trash")
                     }
+                    .accessibilityIdentifier("patient.delete.\(patient.medicalRecordNumber)")
                 }
             }
         }
+        .accessibilityIdentifier("patient.list")
         .navigationTitle(title)
         .navigationDestination(for: Patient.self) { patient in
             PatientDetailView(patient: patient)
@@ -59,6 +64,7 @@ struct PatientListView: View {
                 } label: {
                     Label("Add Patient", systemImage: "person.badge.plus")
                 }
+                .accessibilityIdentifier("add.patient.button")
             }
         }
         .sheet(isPresented: $showingAddPatient) {

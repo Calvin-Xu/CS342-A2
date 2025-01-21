@@ -11,21 +11,29 @@ struct PatientDetailView: View {
                 content: {
                     LabeledContent("Name", value: "\(patient.firstName) \(patient.lastName)")
                         .textSelection(.enabled)
+                        .accessibilityIdentifier("patient.detail.name")
+
                     LabeledContent("Date of Birth", value: patient.dateOfBirthString)
                         .textSelection(.enabled)
+                        .accessibilityIdentifier("patient.detail.dob")
+
                     LabeledContent(
                         "Height",
                         value: String(format: "%.1f cm", Double(patient.height_mm) / 10)
                     )
                     .textSelection(.enabled)
+                    .accessibilityIdentifier("patient.detail.height")
+
                     LabeledContent(
                         "Weight",
                         value: String(format: "%.2f kg", Double(patient.weight_g) / 1000)
                     )
                     .textSelection(.enabled)
+                    .accessibilityIdentifier("patient.detail.weight")
                 },
                 header: {
                     Text("Patient Information")
+                        .accessibilityIdentifier("patient.detail.section.info")
                 })
 
             // Blood Type Section
@@ -50,6 +58,8 @@ struct PatientDetailView: View {
                                                 .cornerRadius(8)
                                         }
                                         .buttonStyle(.plain)
+                                        .accessibilityIdentifier("blood.type.\(type.rawValue)")
+                                        .accessibilityLabel("Filter by blood type \(type.rawValue)")
                                     }
                                 }
                             }
@@ -106,8 +116,8 @@ struct PatientDetailView: View {
                         } label: {
                             Label("Prescribe", systemImage: "plus")
                                 .labelStyle(.iconOnly)
+                                .accessibilityIdentifier("patient.detail.prescribe")
                         }
-                        .accessibilityLabel("Prescribe New Medication")
                     }
                 })
 

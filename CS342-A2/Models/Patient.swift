@@ -66,7 +66,7 @@ class Patient: ObservableObject {
         medications.filter { $0.isActive }.sorted { $0.datePrescribed < $1.datePrescribed }
     }
 
-    /// A list of blood types that are compatible for transfusion to this patient.
+    /// A list of blood types that the patient can receive from.
     var compatibleBloodTypes: [BloodType] {
         bloodType?.compatibleBloodTypes ?? []
     }
