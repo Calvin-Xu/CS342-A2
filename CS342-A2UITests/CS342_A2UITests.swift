@@ -187,28 +187,27 @@ final class PatientListViewTests: XCTestCase {
         app.textFields["medication.dose"].tap()
         app.textFields["medication.dose"].typeText("400")
 
-        //        // Select unit (mg)
-        //        app.buttons["Unit"].tap()
-        //        app.buttons["milligrams"].tap()
-        //
-        //        // Select route
-        //        app.buttons["Route"].tap()
-        //        app.buttons["oral"].tap()
+        // Select unit (mg)
+        app.buttons["medication.unit"].tap()
+        app.buttons["medication.unit.mcg"].tap()
+
+        // Select route
+        app.buttons["medication.route"].tap()
+        app.buttons["medication.route.subcutaneously"].tap()
 
         // Set frequency (3 times per day)
-        app.textFields["medication.frequency"].tap()
-        app.textFields["medication.frequency"].typeText("3")
+        app.buttons["medication.frequency.stepper-Increment"].tap()
+        app.buttons["medication.frequency.stepper-Increment"].tap()
 
         // Set duration (7 days)
-        app.textFields["medication.duration"].tap()
-        app.textFields["medication.duration"].typeText("7")
+        app.sliders["medication.duration.slider"].adjust(toNormalizedSliderPosition: 6.9 / 30.0)
 
         // Save medication
         app.buttons["medication.save"].tap()
 
         // Verify medication appears in the list
         XCTAssertTrue(app.staticTexts["Ibuprofen"].exists)
-        XCTAssertTrue(app.staticTexts["400mg by mouth 31 times daily for 715 days"].exists)
+        XCTAssertTrue(app.staticTexts["400mcg subcutaneously 3 times daily for 7 days"].exists)
     }
 
     func testPrescribeMedicationValidation() throws {

@@ -26,32 +26,32 @@
 /// A type representing a medical patient with their personal and medical information.
 import Foundation
 
-class Patient: ObservableObject {
+@Observable class Patient {
     // MARK: - Properties
 
     /// A unique identifier for the patient's medical record.
     let medicalRecordNumber: UUID
 
     /// The patient's first name.
-    @Published var firstName: String
+    var firstName: String
 
     /// The patient's last name.
-    @Published var lastName: String
+    var lastName: String
 
     /// The patient's date of birth.
-    @Published var dateOfBirth: Date
+    var dateOfBirth: Date
 
     /// The patient's height in millimeters.
-    @Published var height_mm: Int
+    var height_mm: Int
 
     /// The patient's weight in grams.
-    @Published var weight_g: Int
+    var weight_g: Int
 
     /// The patient's blood type, if known.
-    @Published var bloodType: BloodType?
+    var bloodType: BloodType?
 
     /// A list of all medications the patient is currently taking or has taken.
-    @Published private(set) var medications: [Medication]
+    private(set) var medications: [Medication]
 
     // Computed Properties
     /// The patient's full name and age formatted as "Last name, First name (Age)".

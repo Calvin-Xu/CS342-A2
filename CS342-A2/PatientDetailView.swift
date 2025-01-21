@@ -14,7 +14,7 @@ import SwiftUI
 /// - Remove existing medications
 struct PatientDetailView: View {
     /// The patient whose details are being displayed.
-    @ObservedObject var patient: Patient
+    var patient: Patient
 
     /// Whether to show the prescribe medication sheet.
     @State private var showingPrescribeSheet = false

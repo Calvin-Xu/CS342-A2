@@ -11,7 +11,7 @@ import SwiftUI
 /// The view validates input and prevents duplicate prescriptions for active medications.
 struct PrescribeMedicationView: View {
     /// The patient receiving the prescription.
-    @ObservedObject var patient: Patient
+    var patient: Patient
 
     @Environment(\.dismiss) private var dismiss
 
@@ -64,6 +64,7 @@ struct PrescribeMedicationView: View {
                                 ], id: \.self
                             ) {
                                 Text($0.rawValue)
+                                    .accessibilityIdentifier("medication.unit.\($0.rawValue)")
                             }
                         }
                         .accessibilityIdentifier("medication.unit")
@@ -74,6 +75,7 @@ struct PrescribeMedicationView: View {
                     Picker("Route", selection: $route) {
                         ForEach(MedicationRoute.allCases, id: \.self) {
                             Text($0.rawValue)
+                                .accessibilityIdentifier("medication.route.\($0.rawValue)")
                         }
                     }
                     .accessibilityIdentifier("medication.route")
