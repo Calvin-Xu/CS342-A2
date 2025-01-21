@@ -1,12 +1,27 @@
 import SwiftUI
 
+/// A view that displays detailed information about a patient.
+///
+/// This view shows:
+/// - Basic patient information (name, date of birth, height, weight)
+/// - Blood type and compatible blood type information
+/// - Current medications with their details
+/// - Medical record number
+///
+/// The view also provides functionality to:
+/// - Navigate to filtered patient lists by blood type
+/// - Prescribe new medications
+/// - Remove existing medications
 struct PatientDetailView: View {
+    /// The patient whose details are being displayed.
     @ObservedObject var patient: Patient
+
+    /// Whether to show the prescribe medication sheet.
     @State private var showingPrescribeSheet = false
 
     var body: some View {
         List {
-            // Basic Information Section
+            // MARK: - Basic Information Section
             Section(
                 content: {
                     LabeledContent("Name", value: "\(patient.firstName) \(patient.lastName)")
@@ -36,7 +51,7 @@ struct PatientDetailView: View {
                         .accessibilityIdentifier("patient.detail.section.info")
                 })
 
-            // Blood Type Section
+            // MARK: - Blood Type Section
             Section("Blood Type") {
                 if let bloodType = patient.bloodType {
                     LabeledContent("Type", value: bloodType.rawValue)
@@ -71,7 +86,7 @@ struct PatientDetailView: View {
                 }
             }
 
-            // Medications Section
+            // MARK: - Medications Section
             Section(
                 content: {
                     if patient.currentMedications.isEmpty {
@@ -118,9 +133,11 @@ struct PatientDetailView: View {
                                 .labelStyle(.iconOnly)
                                 .accessibilityIdentifier("patient.detail.prescribe")
                         }
+                        .accessibilityLabel("Prescribe New Medication")
                     }
                 })
 
+            // MARK: - Medical Record Section
             LabeledContent("Medical Record Number") {
                 Text(patient.medicalRecordNumber.uuidString)
                     .textSelection(.enabled)

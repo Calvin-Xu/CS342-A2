@@ -1,20 +1,46 @@
 import SwiftUI
 
+/// A view that allows prescribing medications to a patient.
+///
+/// This view presents a form where medical professionals can:
+/// - Enter medication name and dosage
+/// - Select route of administration
+/// - Set frequency and duration of the prescription
+/// - Save the prescription to the patient's record
+///
+/// The view validates input and prevents duplicate prescriptions for active medications.
 struct PrescribeMedicationView: View {
+    /// The patient receiving the prescription.
     @ObservedObject var patient: Patient
 
     @Environment(\.dismiss) private var dismiss
 
-    // Form fields
+    // MARK: - Form Fields
+
+    /// The name of the medication being prescribed.
     @State private var medicationName = ""
+
+    /// The numerical value of the medication dose.
     @State private var doseValue = ""
+
+    /// The unit of measurement for the medication dose.
     @State private var selectedDoseUnit: Dosage.DosageUnit = .milligrams
+
+    /// The route of administration for the medication.
     @State private var route: MedicationRoute = .oral
+
+    /// The number of times per day the medication should be taken.
     @State private var frequency = 1
+
+    /// The duration in days for which the medication should be taken.
     @State private var duration = 15.0
 
-    // Alert State
+    // MARK: - Alert State
+
+    /// Whether to show the error alert.
     @State private var showErrorAlert = false
+
+    /// The error message to display in the alert.
     @State private var errorMessage = ""
 
     var body: some View {
@@ -125,6 +151,13 @@ struct PrescribeMedicationView: View {
         }
     }
 
+    /// Attempts to save the medication prescription to the patient's record.
+    ///
+    /// This function performs the following validations:
+    /// - Checks for duplicate active medications
+    /// - Validates the dose value is a valid integer
+    ///
+    /// - Throws: `MedicationError.duplicateMedication` if the patient is already taking this medication
     private func saveMedication() {
         // Duplicate check
         if patient.currentMedications.contains(where: {

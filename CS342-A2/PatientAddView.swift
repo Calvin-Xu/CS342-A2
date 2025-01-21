@@ -1,11 +1,28 @@
 import SwiftUI
 
+/// A view for adding new patients to the system.
+///
+/// This view presents a form where medical professionals can:
+/// - Enter patient's personal information (name, date of birth)
+/// - Input physical measurements (height, weight)
+/// - Optionally specify blood type
+///
+/// The view includes validation for:
+/// - Required fields (name, height, weight)
+/// - Valid height range (0-300 cm)
+/// - Valid weight range (0-700 kg)
+/// - Future dates not allowed for date of birth
 struct PatientAddView: View {
     @Environment(\.dismiss) private var dismiss
     let store: PatientStore  // Pass the store directly since we're just adding to it
 
-    let MAX_HEIGHT = 300  // https://en.wikipedia.org/wiki/List_of_tallest_people
-    let MAX_WEIGHT = 700  // https://en.wikipedia.org/wiki/List_of_heaviest_people
+    /// Maximum allowed height in centimeters.
+    /// Source: https://en.wikipedia.org/wiki/List_of_tallest_people
+    let MAX_HEIGHT = 300
+
+    /// Maximum allowed weight in kilograms.
+    /// Source: https://en.wikipedia.org/wiki/List_of_heaviest_people
+    let MAX_WEIGHT = 700
 
     /// Required fields
     @State private var firstName = ""
@@ -122,6 +139,15 @@ struct PatientAddView: View {
         }
     }
 
+    /// Attempts to save the new patient to the store.
+    ///
+    /// This function:
+    /// 1. Validates all required fields
+    /// 2. Converts height from cm to mm
+    /// 3. Converts weight from kg to g
+    /// 4. Creates and adds the new patient to the store
+    ///
+    /// - Throws: `PatientError.futureDateOfBirth` if the date of birth is in the future
     private func savePatient() {
         guard isFormValid,
             let heightValue = Double(height_cm),

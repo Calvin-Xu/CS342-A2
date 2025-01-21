@@ -131,11 +131,12 @@ final class PatientListViewTests: XCTestCase {
         app.textFields["patient.add.weight"].tap()
         app.textFields["patient.add.weight"].typeText("65")
 
-        // Select blood type using menu
-        // not working
-        // let bloodTypePicker = app.pickers["patient.add.bloodType"]
-        // bloodTypePicker.tap()
-        // bloodTypePicker.pickerWheels.element(boundBy: 0).adjust(toPickerWheelValue: "O+")
+        // // Select blood type using menu
+        // Tap the picker to open it
+        app.buttons["patient.add.bloodType"].tap()
+
+        // Select a specific blood type (e.g., "A+")
+        app.buttons["patient.add.bloodType.A+"].tap()
 
         // Save the patient
         app.buttons["patient.add.save"].tap()
@@ -145,6 +146,9 @@ final class PatientListViewTests: XCTestCase {
 
         // Verify the new patient appears in the list with correct age
         XCTAssertTrue(app.staticTexts["Brown, Steve (25)"].exists)
+
+        app.staticTexts["Brown, Steve (25)"].tap()
+        XCTAssertTrue(app.buttons["blood.type.A+"].exists)
     }
 
     func testAddPatientValidation() throws {

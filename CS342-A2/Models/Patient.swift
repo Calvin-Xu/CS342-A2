@@ -197,22 +197,27 @@ extension Patient: CustomStringConvertible {
 extension Patient {
     /// Sample patients for previews and testing
     static var samples: [Patient] = {
-        try! [
-            Patient(
-                firstName: "John", lastName: "Doe",
-                dateOfBirth: Date(timeIntervalSince1970: 548_186_691),
-                height: 1800, weight: 70000, bloodType: .abPositive
-            ),
-            Patient(
-                firstName: "Jane", lastName: "Smith",
-                dateOfBirth: Date(timeIntervalSince1970: 748_186_691),
-                height: 1650, weight: 65000, bloodType: .bNegative
-            ),
-            Patient(
-                firstName: "Robert", lastName: "Anderson",
-                dateOfBirth: Date(timeIntervalSince1970: 948_186_691),  // Sat, 18 Jan 2000 09:11:31 GMT
-                height: 1750, weight: 80000, bloodType: .oPositive
-            ),
-        ]
+        do {
+            return try [
+                Patient(
+                    firstName: "John", lastName: "Doe",
+                    dateOfBirth: Date(timeIntervalSince1970: 548_186_691),
+                    height: 1800, weight: 70000, bloodType: .abPositive
+                ),
+                Patient(
+                    firstName: "Jane", lastName: "Smith",
+                    dateOfBirth: Date(timeIntervalSince1970: 748_186_691),
+                    height: 1650, weight: 65000, bloodType: .bNegative
+                ),
+                Patient(
+                    firstName: "Robert", lastName: "Anderson",
+                    dateOfBirth: Date(timeIntervalSince1970: 948_186_691),
+                    height: 1750, weight: 80000, bloodType: .oPositive
+                ),
+            ]
+        } catch {
+            print("Failed to create sample patients: \(error)")
+            return []
+        }
     }()
 }
