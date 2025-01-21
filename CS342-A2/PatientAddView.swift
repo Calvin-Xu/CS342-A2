@@ -11,8 +11,8 @@ struct PatientAddView: View {
     @State private var firstName = ""
     @State private var lastName = ""
     @State private var dateOfBirth = Date.now
-    @State private var height = ""  // in cm, will convert to mm
-    @State private var weight = ""  // in kg, will convert to g
+    @State private var height_cm = ""  // in cm, will convert to mm
+    @State private var weight_kg = ""  // in kg, will convert to g
 
     /// Optional field
     @State private var bloodType: BloodType?
@@ -23,12 +23,12 @@ struct PatientAddView: View {
 
     /// Computed validation properties
     private var isHeightValid: Bool {
-        guard let heightValue = Double(height) else { return false }
+        guard let heightValue = Double(height_cm) else { return false }
         return heightValue > 0 && Int(heightValue) < MAX_HEIGHT
     }
 
     private var isWeightValid: Bool {
-        guard let weightValue = Double(weight) else { return false }
+        guard let weightValue = Double(weight_kg) else { return false }
         return weightValue > 0 && Int(weightValue) < MAX_WEIGHT
     }
 
@@ -54,17 +54,17 @@ struct PatientAddView: View {
                         displayedComponents: .date
                     )
 
-                    TextField("Height (cm)", text: $height)
+                    TextField("Height (cm)", text: $height_cm)
                         .keyboardType(.decimalPad)
-                    if !height.isEmpty && !isHeightValid {
+                    if !height_cm.isEmpty && !isHeightValid {
                         Text("Height must be between 0 and 300 cm")
                             .foregroundStyle(.red)
                             .font(.caption)
                     }
 
-                    TextField("Weight (kg)", text: $weight)
+                    TextField("Weight (kg)", text: $weight_kg)
                         .keyboardType(.decimalPad)
-                    if !weight.isEmpty && !isWeightValid {
+                    if !weight_kg.isEmpty && !isWeightValid {
                         Text("Weight must be between 0 and 700 kg")
                             .foregroundStyle(.red)
                             .font(.caption)
@@ -106,8 +106,8 @@ struct PatientAddView: View {
 
     private func savePatient() {
         guard isFormValid,
-            let heightValue = Double(height),
-            let weightValue = Double(weight)
+            let heightValue = Double(height_cm),
+            let weightValue = Double(weight_kg)
         else { return }
 
         do {

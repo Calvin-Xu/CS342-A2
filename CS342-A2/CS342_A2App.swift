@@ -9,7 +9,11 @@ import SwiftUI
 
 @main
 struct CS342_A2App: App {
-    @State private var store = PatientStore()
+    #if DEBUG
+        @State private var store = PatientStore(patients: Patient.samples)
+    #else
+        @State private var store = PatientStore()
+    #endif
 
     var body: some Scene {
         WindowGroup {
